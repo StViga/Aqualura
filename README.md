@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aquaria Guardian
 
-## Getting Started
+## Обзор проекта
+Aquaria Guardian помогает домашним аквариумистам быстро оценивать биозагрузку, риски несовместимости видов и планировать уход за своими банками. MVP ориентирован на один бесплатный аквариум, авторасчеты и напоминания с возможностью апгрейда тарифа.
 
-First, run the development server:
+- **Цель этапа**: За один сеанс пользователь регистрируется, создает аквариум, добавляет рыб из справочника, получает статус перенаселения, предупреждения по совместимости и расписание ухода с напоминаниями.
+- **Основная аудитория**: Частный владелец аквариума от новичка до продвинутого любителя, ценящий наглядность вместо сложной терминологии.
+- **Развертывание**: Next.js 16 (App Router) с Vercel-совместимыми serverless API.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## URLs и запуск
+- **Локально**: `npm run dev` → http://localhost:3000
+- **Продакшн**: готово к деплою на Vercel `npm run build && vercel deploy` (или `npm run build && vercel --prod`).
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Архитектура данных и доменные сущности
+- **User**: email, hash пароля, настройки уведомлений, тариф (free/premium), лимиты.
+- **Aquarium**: владелец, название, объем, статус биозагрузки (comfort/elevated/critical), статус совместимости, дата последнего расчета.
+- **FishSpecies**: справочник видов с рекомендованным объемом, поведенческой категорией, коэффициентом бионагрузки.
+- **AquariumStock**: связь аквариум ↔ вид, количество особей, размерный класс.
+- **CareTask**: план обслуживания (тип, периодичность, дата следующего запуска, статус, канал уведомлений, измеряемые параметры).
+- **Subscription**: тариф, дата начала, лимит аквариумов.
+- **Session**: токен авторизации, срок жизни.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Бизнес-логика
+- **Биозагрузка**: суммируем рекомендованный объем каждого вида (количество × рекомендованный литраж) и сравниваем с реальным объемом. Диапазоны: до 60% комфорт, 61–100% повышенная нагрузка, >100% критическая.
+- **Совместимость**: на основе поведенческих категорий выявляются пары конфликтующих видов с пояснениями.
+- **План ухода**: базовый шаблон задач (подмена воды, тесты NO3/NO2/pH/GH/KH/TA/Cl2, кормление, наблюдение) с частотой по статусу биозагрузки. Позволяет отмечать выполнение и фиксировать измерения.
+- **Уведомления**: каналы email/push/off с настройкой времени суток и опцией отключить напоминания о кормлении. Канал записывается в каждую задачу.
+- **Тариф**: бесплатный тариф ограничен одним аквариумом. Попытка создать второй аквариум вызывает сценарий апгрейда (фиктивный апдейт подписки через API). Премиум увеличивает лимит.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## REST API (серверные Route Handlers)
+- `POST /api/auth/register` – регистрация и автоавторизация.
+- `POST /api/auth/login` – вход.
+- `POST /api/auth/logout` – выход.
+- `GET /api/auth/session` – текущее состояние пользователя.
+- `GET /api/fish` – справочник видов.
+- `GET/POST /api/aquariums` – список и создание (с тарифным ограничением).
+- `GET/PATCH/DELETE /api/aquariums/:id` – карточка, обновление параметров, удаление.
+- `POST /api/aquariums/:id/stock` – добавление вида.
+- `PATCH/DELETE /api/aquariums/:id/stock/:stockId` – изменение количества и удаление вида.
+- `GET /api/aquariums/:id/care-tasks` – план ухода.
+- `POST /api/aquariums/:id/care-tasks/:taskId/complete` – отметка выполнения с измерениями.
+- `GET/PATCH /api/notifications/settings` – глобальные настройки уведомлений.
+- `GET /api/subscription` и `POST /api/subscription/upgrade` – состояние тарифа и «апгрейд».
 
-## Learn More
+Все эндпоинты требуют авторизации (через серверную cookie-сессию), кроме регистрации, логина и справочника видов.
 
-To learn more about Next.js, take a look at the following resources:
+## Клиентский интерфейс
+- **Экран аутентификации**: переключение логин/регистрация, простая валидация, отображение ошибок.
+- **Главный экран**: шапка с тарифом и пользователем, список аквариумов, карточка выбранного аквариума, блок совместимости, состав рыб, план ухода, модальные окна для настроек уведомлений и ввода результатов тестов.
+- **Ограничения тарифа**: при превышении лимита показан блок с предложением апгрейда.
+- **Состав и план ухода**: добавление/удаление видов, редактирование количества (через blur), отметка задач с измерениями параметров воды.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Памятка по запуску в проде
+1. `npm install`
+2. `npm run lint` – статический анализ (обязателен).
+3. `npm run build` – проверка сборки.
+4. `vercel deploy` (или подключить CI/CD Vercel).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Следующие шаги (roadmap)
+- Подключить реальную платежную систему для апгрейда тарифа.
+- Добавить хранение данных в персистентном хранилище (например, Supabase/Postgres) вместо in-memory.
+- Реализовать матрицу совместимости на более детализированных правилах (размер, регион, параметр воды).
+- Интегрировать реальные пуш-сервисы (OneSignal, Firebase) и email провайдер (Resend/SendGrid).
+- Создать страницу истории измерений параметров воды и визуализации трендов.
