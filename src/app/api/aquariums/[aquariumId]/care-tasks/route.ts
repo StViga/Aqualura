@@ -8,7 +8,7 @@ export async function GET(
   request: NextRequest,
   context: { params: Promise<{ aquariumId: string }> },
 ) {
-  const user = requireUserFromRequest(request);
+  const user = await requireUserFromRequest(request);
   if (!user) {
     return NextResponse.json({ error: "Требуется авторизация" }, { status: 401 });
   }

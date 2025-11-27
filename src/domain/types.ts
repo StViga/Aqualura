@@ -50,11 +50,13 @@ export interface Subscription {
   aquariumLimit: number;
 }
 
+export type AuthProvider = "password" | "google" | "oauth";
+
 export interface User {
   id: string;
   email: string;
-  passwordHash: string;
   displayName?: string;
+  authProvider: AuthProvider;
   notificationSettings: NotificationSettings;
   subscription: Subscription;
   createdAt: string;

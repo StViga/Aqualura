@@ -15,7 +15,7 @@ export async function POST(
   request: NextRequest,
   context: { params: Promise<{ aquariumId: string; taskId: string }> },
 ) {
-  const user = requireUserFromRequest(request);
+  const user = await requireUserFromRequest(request);
   if (!user) {
     return NextResponse.json({ error: "Требуется авторизация" }, { status: 401 });
   }

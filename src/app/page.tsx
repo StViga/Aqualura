@@ -15,6 +15,7 @@ import {
   fetchSubscription,
   getSession,
   login,
+  loginWithGoogle,
   logout,
   register,
   removeFishRequest,
@@ -195,6 +196,19 @@ export default function AquariaGuardian() {
     }
     setUser(response.data.user);
     await loadInitial();
+    setIsBusy(false);
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsBusy(true);
+    clearMessages();
+    const response = await loginWithGoogle();
+    if (response.error) {
+      handleApiError(response.error, 'google');
+      setIsBusy(false);
+      return;
+    }
+    // После успешного редиректа Supabase обновит сессию и loadInitial подтянет профиль
     setIsBusy(false);
   };
 
@@ -418,6 +432,7 @@ export default function AquariaGuardian() {
         setAuthMode={setAuthMode}
         onLogin={handleLogin}
         onRegister={handleRegister}
+        onGoogleLogin={handleGoogleLogin}
         error={error}
         isBusy={isBusy}
       />
@@ -890,11 +905,12 @@ interface AuthScreenProps {
   setAuthMode: (mode: 'login' | 'register') => void;
   onLogin: (payload: { email: string; password: string }) => void;
   onRegister: (payload: { email: string; password: string; displayName?: string }) => void;
+  onGoogleLogin: () => void;
   error: ErrorState | null;
   isBusy: boolean;
 }
 
-const AuthScreen = ({ authMode, setAuthMode, onLogin, onRegister, error, isBusy }: AuthScreenProps) => {
+const AuthScreen = ({ authMode, setAuthMode, onLogin, onRegister, onGoogleLogin, error, isBusy }: AuthScreenProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -943,6 +959,36 @@ const AuthScreen = ({ authMode, setAuthMode, onLogin, onRegister, error, isBusy 
             disabled={isBusy}
           >
             {authMode === 'login' ? 'Войти' : 'Создать аккаунт'}
+          </button>
+          <div className="flex items-center gap-3 text-xs text-slate-400">
+            <span className="h-px flex-1 bg-slate-200" />
+            <span>или</span>
+            <span className="h-px flex-1 bg-slate-200" />
+          </div>
+          <button
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300"
+            onClick={onGoogleLogin}
+            disabled={isBusy}
+          >
+            <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24">
+              <path
+                fill="#4285F4"
+                d="M23.52 12.272c0-.816-.072-1.632-.216-2.424H12v4.584h6.516a5.57 5.57 0 0 1-2.412 3.66v3.024h3.9c2.28-2.088 3.516-5.172 3.516-8.844"
+              />
+              <path
+                fill="#34A853"
+                d="M12 24c3.24 0 5.964-1.08 7.952-2.952l-3.9-3.024c-1.08.744-2.46 1.188-4.052 1.188-3.108 0-5.736-2.1-6.672-4.932H1.316v3.096C3.336 21.528 7.38 24 12 24"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.328 14.28a6.81 6.81 0 0 1-.36-2.28c0-.792.132-1.56.36-2.28V6.624H1.32A11.94 11.94 0 0 0 0 12c0 1.944.468 3.768 1.32 5.376z"
+              />
+              <path
+                fill="#EA4335"
+                d="M12 4.752c1.764 0 3.348.6 4.596 1.776l3.42-3.42C17.964 1.08 15.24 0 12 0 7.38 0 3.336 2.472 1.32 6.624l4.008 3.096C6.264 6.852 8.892 4.752 12 4.752"
+              />
+            </svg>
+            Войти через Google
           </button>
         </div>
         {error && (

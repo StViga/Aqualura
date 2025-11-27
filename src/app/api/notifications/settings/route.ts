@@ -14,7 +14,7 @@ const settingsSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  const user = requireUserFromRequest(request);
+  const user = await requireUserFromRequest(request);
   if (!user) {
     return NextResponse.json({ error: "Требуется авторизация" }, { status: 401 });
   }
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const user = requireUserFromRequest(request);
+  const user = await requireUserFromRequest(request);
   if (!user) {
     return NextResponse.json({ error: "Требуется авторизация" }, { status: 401 });
   }

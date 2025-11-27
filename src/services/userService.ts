@@ -1,18 +1,16 @@
 import { addMonths } from "date-fns";
-import crypto from "node:crypto";
+import type { User as SupabaseAuthUser } from "@supabase/supabase-js";
 
 import {
-  NotificationSettings,
-  Subscription,
-  User,
+  type NotificationSettings,
+  type Subscription,
+  type User,
 } from "@/domain/types";
-import { hashPassword, verifyPassword } from "@/lib/auth";
 import { getStore } from "@/lib/store";
 
-interface RegisterPayload {
-  email: string;
-  password: string;
-  displayName?: string;
+interface EnsureUserOptions {
+  displayName?: string | null;
+  provider?: User["authProvider"];
 }
 
 export const DEFAULT_TIME_ZONE = "UTC";
@@ -29,49 +27,32 @@ const freeSubscription = (): Subscription => ({
   aquariumLimit: 1,
 });
 
-export const registerUser = (
-  payload: RegisterPayload,
-): { user: User; created: boolean } | { error: string } => {
+export const ensureUserProfile = (
+  supabaseUser: SupabaseAuthUser,
+  options?: EnsureUserOptions,
+): User => {
   const store = getStore();
-  const normalizedEmail = payload.email.toLowerCase();
-  const existing = Array.from(store.users.values()).find(
-    (user) => user.email === normalizedEmail,
-  );
+  const existing = store.users.get(supabaseUser.id);
   if (existing) {
-    return { error: "Пользователь с таким email уже существует." };
+    return existing;
   }
-
   const nowIso = new Date().toISOString();
   const user: User = {
-    id: crypto.randomUUID(),
-    email: normalizedEmail,
-    passwordHash: hashPassword(payload.password),
-    displayName: payload.displayName,
+    id: supabaseUser.id,
+    email: supabaseUser.email?.toLowerCase() ?? "",
+    displayName: options?.displayName ?? supabaseUser.user_metadata?.name ?? undefined,
+    authProvider: options?.provider ?? (supabaseUser.app_metadata?.provider === "google" ? "google" : "password"),
     notificationSettings: baseNotificationSettings(),
     subscription: freeSubscription(),
     createdAt: nowIso,
     updatedAt: nowIso,
   };
   store.users.set(user.id, user);
-  return { user, created: true };
-};
-
-export const authenticateUser = (
-  email: string,
-  password: string,
-): User | null => {
-  const store = getStore();
-  const normalizedEmail = email.toLowerCase();
-  const user = Array.from(store.users.values()).find(
-    (candidate) => candidate.email === normalizedEmail,
-  );
-  if (!user) return null;
-  return verifyPassword(password, user.passwordHash) ? user : null;
+  return user;
 };
 
 export const getUserById = (userId: string): User | null => {
-  const user = getStore().users.get(userId) ?? null;
-  return user;
+  return getStore().users.get(userId) ?? null;
 };
 
 export const updateNotificationSettings = (
