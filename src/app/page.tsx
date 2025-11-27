@@ -40,15 +40,15 @@ interface ErrorState {
 const statusCopy: Record<AquariumDTO['status'], { title: string; tone: string }> = {
   comfort: {
     title: 'Комфортная нагрузка',
-    tone: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
+    tone: 'status-badge status-badge--comfort',
   },
   elevated: {
     title: 'Повышенная нагрузка',
-    tone: 'bg-amber-100 text-amber-700 border border-amber-200',
+    tone: 'status-badge status-badge--elevated',
   },
   critical: {
     title: 'Критическая нагрузка',
-    tone: 'bg-rose-100 text-rose-700 border border-rose-200',
+    tone: 'status-badge status-badge--critical',
   },
 };
 
@@ -64,15 +64,21 @@ const defaultNotificationSettings: NotificationSettingsDTO = {
 };
 
 const taskStatusTone: Record<CareTaskDTO['status'], string> = {
-  active: 'bg-sky-50 border border-sky-200 text-sky-700',
-  completed: 'bg-emerald-50 border border-emerald-200 text-emerald-700',
-  overdue: 'bg-rose-50 border border-rose-200 text-rose-700',
+  active: 'task-card task-card--active',
+  completed: 'task-card task-card--completed',
+  overdue: 'task-card task-card--overdue',
 };
 
 const friendlyTaskStatus: Record<CareTaskDTO['status'], string> = {
   active: 'Активна',
   completed: 'Выполнена',
   overdue: 'Просрочена',
+};
+
+const bioLoadMeterTone: Record<AquariumDTO['status'], string> = {
+  comfort: 'progress-meter progress-meter--comfort',
+  elevated: 'progress-meter progress-meter--elevated',
+  critical: 'progress-meter progress-meter--critical',
 };
 
 const behaviorCopy: Record<AquariumDTO['species'][number]['behavior'], string> = {
@@ -105,7 +111,7 @@ const statusComment = (aquarium: AquariumDTO) => {
   }
 };
 
-const cardShadow = 'shadow-sm hover:shadow-md transition-shadow duration-200';
+const cardShadow = 'transition-transform duration-200 hover:-translate-y-[2px]';
 
 export default function AquariaGuardian() {
   const [loading, setLoading] = useState(true);
@@ -417,9 +423,9 @@ export default function AquariaGuardian() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="rounded-2xl bg-white px-10 py-8 shadow-xl">
-          <p className="text-lg font-semibold text-slate-700">Загружаем ваши аквариумы…</p>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="glass-panel px-10 py-8 text-primary">
+          <p className="text-lg font-semibold text-primary-strong">Загружаем ваши аквариумы…</p>
         </div>
       </div>
     );
@@ -440,30 +446,24 @@ export default function AquariaGuardian() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <header className="border-b border-slate-200 bg-white/70 backdrop-blur sticky top-0 z-10">
+    <div className="min-h-screen text-primary">
+      <header className="header-glass sticky top-0 z-10">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-800">Aquaria Guardian</h1>
-            <p className="text-sm text-slate-500">Прозрачный контроль перенаселения и плана ухода</p>
+            <h1 className="text-2xl font-semibold text-primary-strong">Aquaria Guardian</h1>
+            <p className="text-sm text-muted">Прозрачный контроль перенаселения и плана ухода</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm font-medium text-slate-700">{user.email}</p>
-              <p className="text-xs text-slate-500">
+              <p className="text-sm font-semibold text-primary-strong">{user.email}</p>
+              <p className="text-xs text-soft">
                 Тариф: {user.subscription.plan === 'free' ? 'Free' : 'Premium'} • {subscriptionUsage ?? ''}
               </p>
             </div>
-            <button
-              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 hover:border-slate-300 hover:text-slate-800"
-              onClick={() => setShowSettings(true)}
-            >
+            <button className="button-secondary" onClick={() => setShowSettings(true)}>
               Уведомления
             </button>
-            <button
-              className="rounded-lg bg-slate-800 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-900"
-              onClick={handleLogout}
-            >
+            <button className="button-ghost" onClick={handleLogout}>
               Выйти
             </button>
           </div>
@@ -472,21 +472,21 @@ export default function AquariaGuardian() {
 
       <main className="mx-auto max-w-6xl gap-6 px-6 py-6 md:grid md:grid-cols-[320px_1fr]">
         <section className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="glass-panel p-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-800">Мои аквариумы</h2>
+              <h2 className="text-lg font-semibold text-primary-strong">Мои аквариумы</h2>
               <button
-                className="text-sm font-medium text-slate-600 hover:text-slate-900"
+                className="text-sm font-medium text-accent transition-colors hover:text-accent"
                 onClick={() => setShowCreateForm((prev) => !prev)}
               >
                 {showCreateForm ? 'Скрыть' : 'Создать'}
               </button>
             </div>
-            <p className="text-xs text-slate-500">Доступно на тарифе: {subscriptionUsage ?? ''}</p>
+            <p className="text-xs text-soft">Доступно на тарифе: {subscriptionUsage ?? ''}</p>
             {showCreateForm && (
-              <div className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <div className="glass-panel-muted mt-4 space-y-3 border border-transparent p-3">
                 <input
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+                  className="input-field w-full"
                   placeholder="Название"
                   value={createForm.name}
                   onChange={(event) => setCreateForm((prev) => ({ ...prev, name: event.target.value }))}
@@ -494,7 +494,7 @@ export default function AquariaGuardian() {
                 <input
                   type="number"
                   min={10}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+                  className="input-field w-full"
                   placeholder="Объем (л)"
                   value={createForm.volumeLiters}
                   onChange={(event) =>
@@ -502,7 +502,7 @@ export default function AquariaGuardian() {
                   }
                 />
                 <textarea
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+                  className="input-field w-full"
                   placeholder="Описание (необязательно)"
                   value={createForm.description}
                   onChange={(event) =>
@@ -510,11 +510,7 @@ export default function AquariaGuardian() {
                   }
                   rows={2}
                 />
-                <button
-                  className="w-full rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-900 disabled:cursor-not-allowed disabled:bg-slate-300"
-                  disabled={isBusy}
-                  onClick={submitCreateAquarium}
-                >
+                <button className="button-primary w-full" disabled={isBusy} onClick={submitCreateAquarium}>
                   Создать аквариум
                 </button>
               </div>
@@ -527,59 +523,50 @@ export default function AquariaGuardian() {
                 key={aquarium.id}
                 onClick={() => openAquarium(aquarium.id)}
                 className={cn(
-                  'w-full rounded-2xl border border-slate-200 bg-white p-4 text-left transition-all',
+                  'w-full glass-panel-muted border border-transparent p-4 text-left transition-all',
                   cardShadow,
-                  selectedAquarium?.id === aquarium.id ? 'border-slate-400 shadow-md' : '',
+                  selectedAquarium?.id === aquarium.id ? 'panel-selected' : '',
                 )}
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-base font-semibold text-slate-800">{aquarium.name}</h3>
-                    <p className="text-xs text-slate-500">{aquarium.volumeLiters} литров</p>
+                    <h3 className="text-base font-semibold text-primary-strong">{aquarium.name}</h3>
+                    <p className="text-xs text-soft">{aquarium.volumeLiters} литров</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-slate-500">{formatRelative(aquarium.updatedAt)}</p>
-                    <span className={cn('mt-1 inline-flex items-center rounded-full px-2 py-1 text-xs font-medium', statusCopy[aquarium.status].tone)}>
+                    <p className="text-xs text-soft">{formatRelative(aquarium.updatedAt)}</p>
+                    <span className={cn('mt-1', statusCopy[aquarium.status].tone)}>
                       {statusCopy[aquarium.status].title}
                     </span>
                   </div>
                 </div>
                 <div className="mt-3">
-                  <div className="h-2 w-full rounded-full bg-slate-100">
+                  <div className="progress-track">
                     <div
-                      className={cn('h-2 rounded-full',
-                        aquarium.status === 'comfort'
-                          ? 'bg-emerald-400'
-                          : aquarium.status === 'elevated'
-                            ? 'bg-amber-400'
-                            : 'bg-rose-500')}
+                      className={cn(bioLoadMeterTone[aquarium.status])}
                       style={{ width: `${Math.min(120, aquarium.bioLoadPercentage)}%` }}
                     />
                   </div>
-                  <p className="mt-2 text-xs text-slate-500">
+                  <p className="mt-2 text-xs text-soft">
                     Биозагрузка {aquarium.bioLoadPercentage}% (нужно {aquarium.requiredVolumeLiters} л)
                   </p>
                 </div>
               </button>
             ))}
             {aquariums.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
+              <div className="glass-panel-dashed p-6 text-center text-sm">
                 Создайте первый аквариум, чтобы увидеть план ухода и рекомендации.
               </div>
             )}
           </div>
 
           {user.subscription.plan === 'free' && aquariums.length >= user.subscription.aquariumLimit && (
-            <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4">
-              <h3 className="text-sm font-semibold text-indigo-800">Лимит бесплатного тарифа достигнут</h3>
-              <p className="mt-2 text-xs text-indigo-700">
-                Вы можете управлять одним аквариумом бесплатно. Оформите премиум, чтобы добавить больше банок и получить расширенный анализ.
+            <div className="glass-panel border border-transparent p-4">
+              <h3 className="text-sm font-semibold text-primary-strong">Лимит бесплатного тарифа достигнут</h3>
+              <p className="mt-2 text-xs text-muted">
+                Управлять одним аквариумом можно бесплатно. Оформите премиум, чтобы подключить дополнительные банки и расширенный анализ.
               </p>
-              <button
-                className="mt-3 w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
-                onClick={requestUpgrade}
-                disabled={isBusy}
-              >
+              <button className="button-primary mt-3 w-full" onClick={requestUpgrade} disabled={isBusy}>
                 Перейти на премиум
               </button>
             </div>
@@ -588,41 +575,36 @@ export default function AquariaGuardian() {
 
         <section className="space-y-4">
           {error && (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-              {error.context ? <strong className="font-semibold">{error.context}: </strong> : null}
+            <div className="glass-panel-muted border border-rose-400/40 p-3 text-sm text-primary">
+              {error.context ? <strong className="font-semibold text-primary-strong">{error.context}: </strong> : null}
               {error.message}
             </div>
           )}
           {infoMessage && (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+            <div className="glass-panel-muted border border-emerald-400/35 p-3 text-sm text-primary">
               {infoMessage}
             </div>
           )}
           {selectedAquarium ? (
             <div className="space-y-6">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="glass-panel border border-transparent p-6">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>
-                    <h2 className="text-xl font-semibold text-slate-800">{selectedAquarium.name}</h2>
-                    <p className="text-sm text-slate-500">Объем {selectedAquarium.volumeLiters} литров</p>
+                    <h2 className="text-xl font-semibold text-primary-strong">{selectedAquarium.name}</h2>
+                    <p className="text-sm text-soft">Объем {selectedAquarium.volumeLiters} литров</p>
                   </div>
-                  <span
-                    className={cn(
-                      'inline-flex items-center rounded-full px-3 py-1 text-sm font-medium',
-                      statusCopy[selectedAquarium.status].tone,
-                    )}
-                  >
+                  <span className={statusCopy[selectedAquarium.status].tone}>
                     {statusCopy[selectedAquarium.status].title}
                   </span>
                 </div>
-                <p className="mt-4 text-sm text-slate-600">{statusComment(selectedAquarium)}</p>
+                <p className="mt-4 text-sm text-muted">{statusComment(selectedAquarium)}</p>
                 <div className="mt-4">
-                  <h3 className="text-sm font-semibold text-slate-700">Совместимость</h3>
-                  <p className="text-sm text-slate-600">{compatibilityCopy[selectedAquarium.compatibilityStatus]}</p>
+                  <h3 className="text-sm font-semibold text-primary-strong">Совместимость</h3>
+                  <p className="text-sm text-muted">{compatibilityCopy[selectedAquarium.compatibilityStatus]}</p>
                   {compatibilityWarnings.length > 0 && (
-                    <ul className="mt-2 space-y-2 text-sm text-rose-600">
+                    <ul className="mt-2 space-y-2 text-sm text-primary">
                       {compatibilityWarnings.map((warning) => (
-                        <li key={warning} className="rounded-lg bg-rose-50 px-3 py-2">
+                        <li key={warning} className="glass-panel-muted border border-rose-400/25 px-3 py-2">
                           {warning}
                         </li>
                       ))}
@@ -631,11 +613,11 @@ export default function AquariaGuardian() {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="glass-panel border border-transparent p-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-slate-800">Состав аквариума</h3>
+                  <h3 className="text-lg font-semibold text-primary-strong">Состав аквариума</h3>
                   <button
-                    className="text-sm font-medium text-slate-600 hover:text-slate-900"
+                    className="text-sm font-medium text-accent hover:text-accent"
                     onClick={() => setShowAddFishForm((prev) => !prev)}
                   >
                     {showAddFishForm ? 'Скрыть' : 'Добавить вид'}
@@ -643,9 +625,9 @@ export default function AquariaGuardian() {
                 </div>
 
                 {showAddFishForm && (
-                  <div className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="glass-panel-muted mt-4 space-y-3 border border-transparent p-4">
                     <select
-                      className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+                      className="input-field w-full"
                       value={fishForm.speciesId}
                       onChange={(event) =>
                         setFishForm((prev) => ({ ...prev, speciesId: event.target.value }))
@@ -662,14 +644,14 @@ export default function AquariaGuardian() {
                       <input
                         type="number"
                         min={1}
-                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+                        className="input-field w-full"
                         value={fishForm.quantity}
                         onChange={(event) =>
                           setFishForm((prev) => ({ ...prev, quantity: Number(event.target.value) }))
                         }
                       />
                       <select
-                        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+                        className="input-field w-full"
                         value={fishForm.sizeClass}
                         onChange={(event) =>
                           setFishForm((prev) => ({ ...prev, sizeClass: event.target.value as typeof fishForm.sizeClass }))
@@ -680,11 +662,7 @@ export default function AquariaGuardian() {
                         <option value="large">Крупная</option>
                       </select>
                     </div>
-                    <button
-                      className="w-full rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-900 disabled:cursor-not-allowed disabled:bg-slate-300"
-                      onClick={submitAddFish}
-                      disabled={isBusy}
-                    >
+                    <button className="button-primary w-full" onClick={submitAddFish} disabled={isBusy}>
                       Добавить
                     </button>
                   </div>
@@ -694,12 +672,12 @@ export default function AquariaGuardian() {
                   {selectedAquarium.species.map((item) => (
                     <div
                       key={item.id}
-                      className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 md:flex-row md:items-center md:justify-between"
+                      className="glass-panel-muted flex flex-col gap-3 border border-transparent p-4 md:flex-row md:items-center md:justify-between"
                     >
                       <div>
-                        <p className="text-sm font-semibold text-slate-800">{item.commonName}</p>
-                        <p className="text-xs text-slate-500">{item.scientificName}</p>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="text-sm font-semibold text-primary-strong">{item.commonName}</p>
+                        <p className="text-xs text-soft">{item.scientificName}</p>
+                        <p className="mt-1 text-xs text-soft">
                           {behaviorCopy[item.behavior]} • Рекомендовано {item.recommendedVolumePerFish} л на особь
                         </p>
                       </div>
@@ -708,12 +686,12 @@ export default function AquariaGuardian() {
                           key={`${item.id}-${item.quantity}`}
                           type="number"
                           min={1}
-                          className="w-24 rounded-lg border border-slate-200 px-2 py-2 text-sm text-slate-700 focus:border-slate-400 focus:outline-none"
+                          className="input-field !w-24 text-center"
                           defaultValue={item.quantity}
                           onBlur={(event) => updateFishQuantity(item.id, Number(event.target.value))}
                         />
                         <button
-                          className="text-sm font-medium text-rose-600 hover:text-rose-800"
+                          className="text-sm font-medium text-rose-300 hover:text-rose-200"
                           onClick={() => removeFish(item.id)}
                         >
                           Удалить
@@ -722,17 +700,17 @@ export default function AquariaGuardian() {
                     </div>
                   ))}
                   {selectedAquarium.species.length === 0 && (
-                    <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4 text-center text-sm text-slate-500">
+                    <div className="glass-panel-dashed p-4 text-center text-sm">
                       Состав пока пустой. Добавьте первой рыбы, чтобы увидеть расчеты.
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="glass-panel border border-transparent p-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-slate-800">План ухода</h3>
-                  <p className="text-xs text-slate-500">
+                  <h3 className="text-lg font-semibold text-primary-strong">План ухода</h3>
+                  <p className="text-xs text-soft">
                     Последний пересчет: {formatDate(selectedAquarium.lastCalculatedAt)}
                   </p>
                 </div>
@@ -740,27 +718,21 @@ export default function AquariaGuardian() {
                   {[...selectedAquarium.careTasks]
                     .sort((a, b) => new Date(a.nextDueAt).getTime() - new Date(b.nextDueAt).getTime())
                     .map((task) => (
-                      <div
-                        key={task.id}
-                        className={cn(
-                          'rounded-xl px-4 py-3 text-sm',
-                          taskStatusTone[task.status],
-                        )}
-                      >
+                      <div key={task.id} className={cn(taskStatusTone[task.status], 'text-sm')}>
                         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                           <div>
                             <p className="text-sm font-semibold">{task.title}</p>
-                            <p className="text-xs opacity-80">{task.description}</p>
+                            <p className="text-xs text-soft">{task.description}</p>
                             <p className="mt-1 text-xs">
                               Следующий раз: {formatDate(task.nextDueAt)} ({formatRelative(task.nextDueAt)})
                             </p>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className="rounded-full bg-white/40 px-2 py-1 text-xs font-medium">
+                            <span className="task-status-chip">
                               {friendlyTaskStatus[task.status]}
                             </span>
                             <button
-                              className="rounded-lg bg-white/70 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-white"
+                              className="button-secondary text-xs font-semibold"
                               disabled={isBusy}
                               onClick={() => completeTask(task)}
                             >
@@ -771,7 +743,7 @@ export default function AquariaGuardian() {
                       </div>
                     ))}
                   {selectedAquarium.careTasks.length === 0 && (
-                    <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4 text-center text-sm text-slate-500">
+                    <div className="glass-panel-dashed p-4 text-center text-sm">
                       Задачи появятся после добавления рыб в аквариум.
                     </div>
                   )}
@@ -779,7 +751,7 @@ export default function AquariaGuardian() {
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
+            <div className="glass-panel-dashed p-10 text-center text-soft">
               Выберите аквариум слева, чтобы увидеть подробности по биозагрузке, совместимости и уходу.
             </div>
           )}
@@ -787,17 +759,17 @@ export default function AquariaGuardian() {
       </main>
 
       {showSettings && (
-        <div className="fixed inset-0 z-20 flex items-center justify-center bg-slate-900/50 px-6">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-slate-800">Настройки уведомлений</h3>
-            <p className="text-sm text-slate-500">
+        <div className="modal-overlay fixed inset-0 z-20 flex items-center justify-center px-6">
+          <div className="modal-surface w-full max-w-lg p-6 text-primary">
+            <h3 className="text-lg font-semibold text-primary-strong">Настройки уведомлений</h3>
+            <p className="text-sm text-muted">
               Выберите удобный канал и время получения напоминаний. Настройки применяются ко всем аквариумам.
             </p>
             <div className="mt-4 space-y-4">
               <div>
-                <label className="text-xs font-semibold uppercase text-slate-500">Канал</label>
+                <label className="text-xs font-semibold uppercase text-soft">Канал</label>
                 <select
-                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+                  className="input-field mt-1 w-full"
                   value={settings.channel}
                   onChange={(event) => setSettings((prev) => ({ ...prev, channel: event.target.value as NotificationSettingsDTO['channel'] }))}
                 >
@@ -807,9 +779,9 @@ export default function AquariaGuardian() {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-semibold uppercase text-slate-500">Время напоминаний</label>
+                <label className="text-xs font-semibold uppercase text-soft">Время напоминаний</label>
                 <select
-                  className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+                  className="input-field mt-1 w-full"
                   value={settings.preferredTime}
                   onChange={(event) =>
                     setSettings((prev) => ({ ...prev, preferredTime: event.target.value as NotificationSettingsDTO['preferredTime'] }))
@@ -821,7 +793,7 @@ export default function AquariaGuardian() {
                 </select>
               </div>
               <div>
-                <label className="flex items-center gap-2 text-sm text-slate-600">
+                <label className="flex items-center gap-2 text-sm text-muted">
                   <input
                     type="checkbox"
                     checked={settings.muteFeedingReminders ?? false}
@@ -834,16 +806,10 @@ export default function AquariaGuardian() {
               </div>
             </div>
             <div className="mt-6 flex justify-end gap-3">
-              <button
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:border-slate-300"
-                onClick={() => setShowSettings(false)}
-              >
+              <button className="button-secondary" onClick={() => setShowSettings(false)}>
                 Отмена
               </button>
-              <button
-                className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-900"
-                onClick={handleSettingsSave}
-              >
+              <button className="button-primary" onClick={handleSettingsSave}>
                 Сохранить
               </button>
             </div>
@@ -852,18 +818,18 @@ export default function AquariaGuardian() {
       )}
 
       {taskCompletion && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-slate-900/60 px-6">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-slate-800">Введите результаты теста</h3>
-            <p className="text-sm text-slate-500">Задача: {taskCompletion.task.title}</p>
+        <div className="modal-overlay fixed inset-0 z-30 flex items-center justify-center px-6">
+          <div className="modal-surface w-full max-w-md p-6 text-primary">
+            <h3 className="text-lg font-semibold text-primary-strong">Введите результаты теста</h3>
+            <p className="text-sm text-muted">Задача: {taskCompletion.task.title}</p>
             <div className="mt-4 space-y-3">
               {Object.entries(taskCompletion.values).map(([key, value]) => (
                 <div key={key}>
-                  <label className="text-xs font-semibold uppercase text-slate-500">{key}</label>
+                  <label className="text-xs font-semibold uppercase text-soft">{key}</label>
                   <input
                     type="number"
                     step="0.01"
-                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+                    className="input-field mt-1 w-full"
                     value={value}
                     onChange={(event) =>
                       setTaskCompletion((prev) =>
@@ -880,16 +846,10 @@ export default function AquariaGuardian() {
               ))}
             </div>
             <div className="mt-6 flex justify-end gap-3">
-              <button
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:border-slate-300"
-                onClick={() => setTaskCompletion(null)}
-              >
+              <button className="button-secondary" onClick={() => setTaskCompletion(null)}>
                 Отмена
               </button>
-              <button
-                className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-900"
-                onClick={submitTaskCompletion}
-              >
+              <button className="button-primary" onClick={submitTaskCompletion}>
                 Сохранить
               </button>
             </div>
@@ -924,49 +884,45 @@ const AuthScreen = ({ authMode, setAuthMode, onLogin, onRegister, onGoogleLogin,
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-6">
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
-        <h1 className="text-2xl font-semibold text-slate-800">Aquaria Guardian</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Управляйте переноселением, совместимостью и уходом за аквариумом в одном окне.
+    <div className="flex min-h-screen items-center justify-center px-6 py-10">
+      <div className="w-full max-w-md glass-panel px-8 py-9 text-primary">
+        <h1 className="text-2xl font-semibold text-primary-strong">Aquaria Guardian</h1>
+        <p className="mt-1 text-sm text-muted">
+          Прозрачный контроль перенаселения, совместимости и ухода в одном приложении.
         </p>
         <div className="mt-6 space-y-4">
           <input
             type="email"
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+            className="input-field w-full"
             placeholder="Email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
           <input
             type="password"
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+            className="input-field w-full"
             placeholder="Пароль"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
           {authMode === 'register' && (
             <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-slate-400 focus:outline-none"
+              className="input-field w-full"
               placeholder="Имя (необязательно)"
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
             />
           )}
-          <button
-            className="w-full rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-900 disabled:cursor-not-allowed disabled:bg-slate-300"
-            onClick={submit}
-            disabled={isBusy}
-          >
+          <button className="button-primary w-full" onClick={submit} disabled={isBusy}>
             {authMode === 'login' ? 'Войти' : 'Создать аккаунт'}
           </button>
-          <div className="flex items-center gap-3 text-xs text-slate-400">
-            <span className="h-px flex-1 bg-slate-200" />
+          <div className="flex items-center gap-3 text-xs text-soft">
+            <span className="h-px flex-1 bg-white/10" />
             <span>или</span>
-            <span className="h-px flex-1 bg-slate-200" />
+            <span className="h-px flex-1 bg-white/10" />
           </div>
           <button
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-slate-300"
+            className="button-secondary w-full justify-center gap-2"
             onClick={onGoogleLogin}
             disabled={isBusy}
           >
@@ -992,14 +948,14 @@ const AuthScreen = ({ authMode, setAuthMode, onLogin, onRegister, onGoogleLogin,
           </button>
         </div>
         {error && (
-          <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+          <div className="glass-panel-muted mt-4 border border-rose-400/40 px-4 py-3 text-sm text-primary">
             {error.message}
           </div>
         )}
-        <div className="mt-6 text-center text-sm text-slate-500">
+        <div className="mt-6 text-center text-sm text-muted">
           {authMode === 'login' ? 'Еще нет аккаунта?' : 'Уже зарегистрированы?'}{' '}
           <button
-            className="font-semibold text-slate-700 hover:text-slate-900"
+            className="text-primary-strong underline underline-offset-4 transition-colors hover:text-accent"
             onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
           >
             {authMode === 'login' ? 'Создать' : 'Войти'}
