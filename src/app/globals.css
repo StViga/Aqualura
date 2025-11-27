@@ -1,26 +1,45 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #04212f;
+  --background-alt: #063a4d;
+  --background-highlight: #0a5463;
+  --foreground: #e5fbff;
+  --muted-foreground: #a7d3da;
+  --accent: #34c9c4;
+  --accent-strong: #1fa6a1;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-background-alt: var(--background-alt);
+  --color-background-highlight: var(--background-highlight);
   --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #02141d;
+    --background-alt: #032530;
+    --background-highlight: #043944;
+    --foreground: #ddf5f7;
+    --muted-foreground: #8cb8bf;
+    --accent: #2fb3ae;
+    --accent-strong: #1a8f8b;
   }
 }
 
 body {
-  background: var(--background);
+  min-height: 100vh;
+  background: radial-gradient(circle at 20% 20%, rgba(52, 201, 196, 0.2), transparent 65%),
+    radial-gradient(circle at 80% 0%, rgba(31, 166, 161, 0.25), transparent 55%),
+    linear-gradient(180deg, var(--background) 0%, var(--background-alt) 45%, var(--background-highlight) 100%);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background 250ms ease, color 250ms ease;
 }
