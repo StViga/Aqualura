@@ -1,12 +1,14 @@
 import "server-only";
 
-import { type SupabaseUser } from "@supabase/supabase-js";
+import { type User as SupabaseRawUser } from "@supabase/supabase-js";
 import { cookies, headers } from "next/headers";
 import { NextRequest } from "next/server";
 
 import { type User } from "@/domain/types";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { ensureUserProfile } from "@/services/userService";
+
+type SupabaseUser = SupabaseRawUser;
 
 const extractBearerToken = (request: NextRequest): string | null => {
   const authHeader = request.headers.get("authorization");
@@ -39,8 +41,8 @@ export const requireUserFromRequest = async (
 };
 
 export const getAuthenticatedUser = async (): Promise<User | null> => {
-  const cookieStore = cookies();
-  const headerStore = headers();
+  const cookieStore = await cookies();
+  const headerStore = await headers();
   const authToken = headerStore.get("authorization")?.split(" ")[1];
   if (authToken) {
     const supabaseUser = await getSupabaseUser(authToken);
